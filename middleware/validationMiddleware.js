@@ -1,8 +1,9 @@
 import {body, param, validationResult} from "express-validator";
 import mongoose from "mongoose";
-import { BadRequestError, NotFoundError } from "../errors/customErrors.js";
+import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors/customErrors.js";
 import { JOB_STATUS, JOB_TYPE } from "../utils/constants.js";
-import jobModel from "../models/jobModel.js";
+import JobModel from "../models/jobModel.js";
+import UserModel from '../models/userModel.js'
 
 const withValidationErrors = (validateValues) => {
     return [
@@ -14,6 +15,9 @@ const withValidationErrors = (validateValues) => {
             if(errMsg[0].startsWith('no job')){
             throw new NotFoundError(errMsg);
         }
+            if(errMsg[0].startsWith('not authorizes')){
+                throw new UnauthorizedError('not authorized to access this route');
+            }
             throw new BadRequestError(errMsg);
         }
         next();
@@ -22,20 +26,99 @@ const withValidationErrors = (validateValues) => {
 }
 
 export const validateJobInput = withValidationErrors([
-    body('company').notEmpty().withMessage('company is required'),
-    body('position').notEmpty().withMessage('position is required'),
-    body('jobLocation').notEmpty().withMessage('job location is required'),
-    body('jobStatus').isIn(Object.values(JOB_STATUS)).withMessage('invalid status value'),
-    body('jobType').isIn(Object.values(JOB_TYPE)).withMessage('invalid type value'),
+    body('company')
+        .notEmpty()
+        .withMessage('company is required'),
+    body('position')
+        .notEmpty()
+        .withMessage('position is required'),
+    body('jobLocation')
+        .notEmpty()
+        .withMessage('job location is required'),
+    body('jobStatus')
+        .isIn(Object.values(JOB_STATUS))
+        .withMessage('invalid status value'),
+    body('jobType')
+        .isIn(Object.values(JOB_TYPE))
+        .withMessage('invalid type value'),
+]);
+
+export const validateRegisterInput = withValidationErrors([
+    body('name')
+        .notEmpty()
+        .withMessage('name is required'),
+    body('email')
+        .notEmpty()
+        .withMessage('email is required')
+        .isEmail()
+        .withMessage('invalid email format')
+        .custom( async (email)=> {
+        const user = await UserModel.findOne({ email });
+        if(user){
+            throw new BadRequestError('email already exists')
+        }
+    }),
+    body('password')
+        .notEmpty()
+        .withMessage('password is required')
+        .isLength({ min: 8})
+        .withMessage('password must be at least 8 characters long'),
+    body('lastName')
+        .notEmpty()
+        .withMessage('lastName is required'),
+    body('location')
+        .notEmpty()
+        .withMessage('location is required'),
+]);
+
+export const validateLoginInput = withValidationErrors([
+    body('email')
+        .notEmpty()
+        .withMessage('email is required')
+        .isEmail()
+        .withMessage('invalid email format'),
+    body('password')
+        .notEmpty()
+        .withMessage('password is required'),
+]);
+
+export const validateUpdateUserInput = withValidationErrors([
+    body('name')
+        .notEmpty()
+        .withMessage('name is required'),
+    body('email')
+        .notEmpty()
+        .withMessage('email is required')
+        .isEmail()
+        .withMessage('invalid email format')
+        .custom( async (email, {req})=> {
+        const user = await UserModel.findOne({ email });
+        if(user && user._id.toString() !== req.user.userId){
+            throw new BadRequestError('email already exists')
+        }
+    }),
+    body('lastName')
+        .notEmpty()
+        .withMessage('lastName is required'),
+    body('location')
+        .notEmpty()
+        .withMessage('location is required'),
 ]);
 
 export const validateIdParam = withValidationErrors([
     param('id')
-    .custom(async (value)=> {
+    .custom(async (value, {req})=> {
         const isValidId = mongoose.Types.ObjectId.isValid(value);
         if(!isValidId) throw new BadRequestError('Invalid mongoDB id');
 
-        const job = await jobModel.findById(value);
+        const job = await JobModel.findById(value);
         if(!job) throw new NotFoundError(`no job with ${value}`);
+        const isAdmin = req.user.role === 'admin';
+        const isOwner = req.user.userId === job.createdBy.toString();
+        if(!isAdmin && !isOwner){
+            throw new UnauthorizedError('not authorized to access this route');
+        };
+
     }),
 ]);
+
