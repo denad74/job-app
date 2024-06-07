@@ -4,3 +4,7 @@ export { default as NavBar } from './NavBar';
 export { default as SmallSidebar } from './SmallSidebar';
 export { default as BigSidebar } from './BigSidebar';
 export {default as NavLinks} from './NavLinks';
+export {default as FormRowSelected} from './FormRowSelected';
+export {default as JobsContainer} from './JobsContainer';
+export {default as SearchContainer} from './SearchContainer';
+export {default as JobCard} from './JobCard';

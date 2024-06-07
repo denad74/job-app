@@ -5,6 +5,9 @@ const StyledSmallSidebarLinks = styled.div`
     padding-top: 2rem;
     display: flex;
     flex-direction: column;
+    &.pending {
+        color: var(--primary-500);
+    }
 `
 
 const StyledSmallSidebarNavLink = styled(NavLink)`

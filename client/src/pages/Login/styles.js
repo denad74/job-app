@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Form, Link } from "react-router-dom";
 import styled from "styled-components";
 
 const StyledLoginContainer = styled.section`
@@ -12,7 +12,7 @@ const StyledLogoImg = styled.div`
   margin-bottom: 1.38rem;
 `
 
-const StyledForm = styled.div`
+const StyledForm = styled(Form)`
   max-width: 400px;
       border-top: 5px solid var(--primary-500);
   width: 90vw;

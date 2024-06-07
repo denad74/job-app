@@ -1,8 +1,16 @@
 import {RouterProvider, createBrowserRouter} from "react-router-dom";
-import { HomeLayout, Register, Login, DashboardLayout, Landing, Error, Admin, AddJob, Stats, AllJobs, Profile} from './pages'
+import { HomeLayout, Register, Login, DashboardLayout, Landing, Error, Admin, AddJob, Stats, AllJobs, Profile, EditJob} from './pages';
 import { DashboardContextProvider } from "./context/DashboardContext";
 
-import { action as registerAction} from './pages/Register'
+import { action as registerAction} from './pages/Register';
+import { action as loginAction} from './pages/Login';
+import { action as addJob } from './pages/AddJob';
+import { action as editJob } from './pages/EditJob';
+import { loader as editJobLoader } from './pages/EditJob';
+import { loader as dashboardLoader } from './pages/DashboardLayout';
+import { loader as allJobsLoader } from './pages/AllJobs';
+import { action as deleteJob } from './pages/DeleteJob';
+
 
 
 
@@ -24,15 +32,18 @@ const router = createBrowserRouter([
       },
       {
       path: 'login',
-      element: <Login/>
+      element: <Login/>,
+      action: loginAction,
       },
       {
       path: 'dashboard',
       element: <DashboardLayout/>,
+      loader: dashboardLoader,
       children:[
         {
           index:true,
-          element: <AddJob />
+          element: <AddJob />,
+          action: addJob,
         },
         {
           path: 'stats',
@@ -40,7 +51,8 @@ const router = createBrowserRouter([
         },
         {
           path: 'all-jobs',
-          element: <AllJobs />
+          element: <AllJobs />,
+          loader: allJobsLoader
         },
         {
           path: 'profile',
@@ -49,6 +61,16 @@ const router = createBrowserRouter([
         {
           path: 'admin',
           element: <Admin />
+        },
+        { 
+          path: 'edit-job/:id',
+          element: <EditJob/>,
+          loader: editJobLoader,
+          action: editJob
+        },
+        {
+          path: 'delete-job/:id',
+          action: deleteJob
         }
       ]
       },

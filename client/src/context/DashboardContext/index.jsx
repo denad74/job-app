@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from 'react';
-import { user } from '../../Data';
-const DashboardContext = createContext({user, });
+import customFetch from '../../utils/customFetch';
+import { toast } from 'react-toastify';
+const DashboardContext = createContext();
 const Provider = DashboardContext.Provider;
 
 const checkDefaultTheme = () => {
@@ -11,6 +12,7 @@ const checkDefaultTheme = () => {
 
 // eslint-disable-next-line react/prop-types
 const DashboardContextProvider = ({ children }) => {
+    const [user, setUser] = useState('');
     const [showSidebar, setShowSidebar] = useState(false);
     const [isDarkTheme, setIsDarkTheme] = useState(checkDefaultTheme);
 
@@ -28,10 +30,12 @@ const DashboardContextProvider = ({ children }) => {
         setShowSidebar(!showSidebar);
     };
     const logoutUser = async ()  => {
-        console.log('Logout user');
+      await customFetch.get('/auth/logout')
+      toast.success('Logging out...')
     }
   return <Provider value={{ 
-    user, 
+    user,
+    setUser, 
     showSidebar, 
     isDarkTheme, 
     toggleDarkTheme, 
